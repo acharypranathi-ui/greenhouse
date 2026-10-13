@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Phone, MapPin, Menu, X, ArrowRight, ShieldCheck } from './Icons';
 import { websiteData } from '../data';
 
-export default function Navbar() {
+export default function Navbar({ currentView, onNavigate }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -18,15 +18,40 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLinkClick = (e, target) => {
+    if (target === 'blog') {
+      e.preventDefault();
+      onNavigate('blog');
+      setMobileMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (currentView !== 'home') {
+      e.preventDefault();
+      onNavigate('home');
+      setMobileMenuOpen(false);
+      setTimeout(() => {
+        const el = document.querySelector(target);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      return;
+    }
+
+    setMobileMenuOpen(false);
+  };
+
   const navLinks = [
-    { name: 'Home', href: '#hero' },
-    { name: 'About Us', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Why Us', href: '#why-us' },
-    { name: 'Gallery', href: '#gallery' },
-    { name: 'Testimonials', href: '#testimonials' },
-    { name: 'Enquiry', href: '#enquiry' },
+    { name: 'Home', href: '#hero', type: 'anchor' },
+    { name: 'About Us', href: '#about', type: 'anchor' },
+    { name: 'Services', href: '#services', type: 'anchor' },
+    { name: 'Projects', href: '#projects', type: 'anchor' },
+    { name: 'Why Us', href: '#why-us', type: 'anchor' },
+    { name: 'Gallery', href: '#gallery', type: 'anchor' },
+    { name: 'Testimonials', href: '#testimonials', type: 'anchor' },
+    { name: 'Blog', href: '#blog', type: 'view' },
+    { name: 'Enquiry', href: '#enquiry', type: 'anchor' },
   ];
 
   return (
@@ -72,7 +97,22 @@ export default function Navbar() {
       >
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.5rem' }}>
           {/* Logo */}
-          <a href="#hero" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button
+            onClick={() => {
+              onNavigate('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              cursor: 'pointer',
+              padding: 0,
+              textAlign: 'left'
+            }}
+          >
             <div style={{
               width: '42px',
               height: '42px',
@@ -97,34 +137,56 @@ export default function Navbar() {
                 DEVELOPERS • TIRUPATI
               </div>
             </div>
-          </a>
+          </button>
 
           {/* Desktop Navigation Links */}
-          <nav style={{ display: 'none', alignItems: 'center', gap: '1.75rem' }} className="desktop-nav">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                style={{
-                  fontSize: '0.925rem',
-                  fontWeight: 600,
-                  color: '#334155',
-                  transition: 'color 0.2s ease',
-                  padding: '0.35rem 0'
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#15803d')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#334155')}
-              >
-                {link.name}
-              </a>
-            ))}
+          <nav style={{ display: 'none', alignItems: 'center', gap: '1.6rem' }} className="desktop-nav">
+            {navLinks.map((link) => {
+              const isBlogActive = (link.name === 'Blog' && (currentView === 'blog' || currentView === 'article'));
+              return (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => handleLinkClick(e, link.name === 'Blog' ? 'blog' : link.href)}
+                  style={{
+                    fontSize: '0.925rem',
+                    fontWeight: 600,
+                    color: isBlogActive ? '#15803d' : '#334155',
+                    transition: 'color 0.2s ease',
+                    padding: '0.35rem 0',
+                    borderBottom: isBlogActive ? '2px solid #15803d' : '2px solid transparent'
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#15803d')}
+                  onMouseLeave={(e) => {
+                    if (!isBlogActive) e.currentTarget.style.color = '#334155';
+                  }}
+                >
+                  {link.name}
+                </a>
+              );
+            })}
           </nav>
 
           {/* Action Button Desktop */}
           <div style={{ display: 'none', alignItems: 'center', gap: '0.85rem' }} className="desktop-actions">
-            <a href="#enquiry" className="btn-primary" style={{ padding: '0.7rem 1.4rem', fontSize: '0.9rem' }}>
+            <button
+              onClick={() => {
+                if (currentView !== 'home') {
+                  onNavigate('home');
+                  setTimeout(() => {
+                    const el = document.getElementById('enquiry');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                } else {
+                  const el = document.getElementById('enquiry');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="btn-primary"
+              style={{ padding: '0.7rem 1.4rem', fontSize: '0.9rem' }}
+            >
               Book Site Visit <ArrowRight size={15} />
-            </a>
+            </button>
           </div>
 
           {/* Mobile Hamburger Toggle */}
@@ -163,11 +225,11 @@ export default function Navbar() {
               <a
                 key={link.name}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => handleLinkClick(e, link.name === 'Blog' ? 'blog' : link.href)}
                 style={{
                   fontSize: '1rem',
                   fontWeight: 600,
-                  color: '#1e293b',
+                  color: (link.name === 'Blog' && (currentView === 'blog' || currentView === 'article')) ? '#15803d' : '#1e293b',
                   padding: '0.5rem 0',
                   borderBottom: '1px solid #f1f5f9'
                 }}
@@ -175,14 +237,25 @@ export default function Navbar() {
                 {link.name}
               </a>
             ))}
-            <a
-              href="#enquiry"
-              onClick={() => setMobileMenuOpen(false)}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (currentView !== 'home') {
+                  onNavigate('home');
+                  setTimeout(() => {
+                    const el = document.getElementById('enquiry');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                } else {
+                  const el = document.getElementById('enquiry');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
               className="btn-primary"
               style={{ width: '100%', marginTop: '0.5rem' }}
             >
               Book Site Visit <ArrowRight size={16} />
-            </a>
+            </button>
           </div>
         )}
       </header>

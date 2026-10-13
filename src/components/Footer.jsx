@@ -2,9 +2,25 @@ import React from 'react';
 import { Phone, Mail, MapPin, Instagram, Facebook, Youtube, Linkedin, ArrowUp, ShieldCheck } from './Icons';
 import { websiteData } from '../data';
 
-export default function Footer() {
+export default function Footer({ onNavigate }) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleLinkClick = (e, name, href) => {
+    e.preventDefault();
+    if (name === 'Blog') {
+      if (onNavigate) onNavigate('blog');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (onNavigate) onNavigate('home');
+    setTimeout(() => {
+      const el = document.querySelector(href);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const quickLinks = [
@@ -12,8 +28,10 @@ export default function Footer() {
     { name: 'About Us', href: '#about' },
     { name: 'Services', href: '#services' },
     { name: 'Projects', href: '#projects' },
+    { name: 'Why Us', href: '#why-us' },
     { name: 'Gallery', href: '#gallery' },
     { name: 'Testimonials', href: '#testimonials' },
+    { name: 'Blog', href: '#blog' },
     { name: 'Contact', href: '#enquiry' },
   ];
 
@@ -167,11 +185,13 @@ export default function Footer() {
                 <li key={link.name}>
                   <a
                     href={link.href}
+                    onClick={(e) => handleLinkClick(e, link.name, link.href)}
                     style={{
                       fontSize: '0.92rem',
                       color: '#94a3b8',
                       transition: 'color 0.2s ease',
-                      display: 'inline-block'
+                      display: 'inline-block',
+                      cursor: 'pointer'
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#4ade80')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
